@@ -1,0 +1,21 @@
+version: '3.9'
+services:
+  api:
+    build:
+      context: ./
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./app:/app
+    environment:
+      # Super user is created automaticly only once on the first run. If you want to create another one
+      # with those settings, use python manage.py createsuperuser --noinput in a container.
+      # For security reasons, I recommend changing at least the password before first run,
+      # and removing this information after super user has been created
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_EMAIL=admin@example.com
+      - DJANGO_SUPERUSER_PASSWORD=admin
+    command: sh -c 'python manage.py makemigrations &&
+                    python manage.py migrate &&
+                    python manage.py shell < create_initial_superuser.py &&
+                    python manage.py runserver 0.0.0.0:8000'

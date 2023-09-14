@@ -21,10 +21,11 @@ services:
       - DJANGO_SUPERUSER_USERNAME=admin
       - DJANGO_SUPERUSER_EMAIL=admin@example.com
       - DJANGO_SUPERUSER_PASSWORD=admin
-    command: sh -c 'python manage.py makemigrations &&
-                    python manage.py migrate &&
-                    python manage.py shell < create_initial_superuser.py &&
-                    python manage.py runserver 0.0.0.0:8000'
+    command: sh -c 'python manage.py wait_for_db &&
+      python manage.py makemigrations &&
+      python manage.py migrate &&
+      python manage.py shell < create_initial_superuser.py &&
+      python manage.py runserver 0.0.0.0:8000'
 
   database:
     image: postgres:13-alpine

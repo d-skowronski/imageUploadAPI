@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from django.db import models
 from django.contrib.auth import get_user_model
 from .utils import generate_slug_from_title
@@ -22,6 +23,7 @@ class Image(models.Model):
         if not self.slug:
             self.slug = generate_slug_from_title(self.title)
             self.file.name = f'{self.slug}.{self.file.name.split(".")[-1]}'
+        self.full_clean()
         super().save(*args, **kwargs)
 
 
@@ -41,6 +43,7 @@ class ResizedImage(models.Model):
             self.slug = generate_slug_from_title(self.original.title)
         if not self.file:
             self._generate_mock_file()
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def _generate_mock_file(self):
@@ -80,3 +83,7 @@ class ExpiringLink(models.Model):
     slug = models.SlugField(unique=True)
     image = models.ForeignKey(Image, on_delete=models.CASCADE)
     expiration = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)

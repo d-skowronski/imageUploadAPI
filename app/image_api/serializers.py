@@ -12,7 +12,7 @@ class UploadedImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Image
-        fields = ('title', 'file', 'file_urls', 'expiring_link_generator', 'uploaded_at')
+        fields = ('pk', 'title', 'file', 'file_urls', 'expiring_link_generator', 'uploaded_at')
         read_only_fields = ('title',)
 
     def get_file_urls(self, obj):

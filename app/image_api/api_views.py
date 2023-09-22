@@ -3,7 +3,7 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from .serializers import UploadedImageSerializer, ExpiringLinkSerializer
 from .models import Image, ExpiringLink
-from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import NotFound
 
 
 class UploaderExpringAccess(BasePermission):
@@ -35,10 +35,15 @@ class ExpiringLinkCreateList(generics.ListCreateAPIView):
     authentication_classes = [SessionAuthentication]
 
     def get_queryset(self):
+        image = Image.objects.filter(pk=self.kwargs['pk'])
+        if not image.exists() or image.first().uploader != self.request.user:
+            exc = NotFound()
+            data = {'detail': exc.detail}
+            raise NotFound(data, code=404)
+
         image_pk = self.kwargs['pk']
         expiring_links = ExpiringLink.objects.filter(
             image__pk=image_pk,
-            image__uploader__pk=self.request.user.pk,
         )
         return [obj for obj in expiring_links if not obj.is_expired]
 
@@ -46,8 +51,3 @@ class ExpiringLinkCreateList(generics.ListCreateAPIView):
         context = super().get_serializer_context()
         context.update({"image_pk": self.kwargs['pk']})
         return context
-
-    def dispatch(self, request, *args, **kwargs):
-        # Check if related image does exist
-        get_object_or_404(Image, pk=self.kwargs['pk'])
-        return super().dispatch(request, *args, **kwargs)

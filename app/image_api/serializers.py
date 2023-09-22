@@ -1,13 +1,16 @@
 from rest_framework import serializers
 from .models import Image, ResizedImage, ExpiringLink
 from core.models import Tier
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
 from django.conf import settings
 from rest_framework.reverse import reverse
 
 
 class ExpiringLinkSerializer(serializers.HyperlinkedModelSerializer):
     link = serializers.SerializerMethodField()
+    valid_for = serializers.IntegerField(
+        validators=[MinValueValidator(settings.MIN_EXPIRING_TIME), MaxValueValidator(settings.MAX_EXPIRING_TIME)]
+    )
 
     class Meta:
         model = ExpiringLink

@@ -1,8 +1,6 @@
 from datetime import timedelta
-from io import BytesIO
 from os.path import basename
 from unittest.mock import patch
-from PIL import Image as PIL_Image
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
@@ -12,17 +10,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
 from ..models import Image, ResizedImage, ExpiringLink
-from . import FileTestCase
-
-
-def generate_image(size=500, color=(256, 0, 0), format='png'):
-    '''Create image in memory
-    Default: 500x500px all red png image
-    '''
-    image_buffer = BytesIO()
-    image = PIL_Image.new('RGBA', size=(size, size), color=color)
-    image.save(image_buffer, format)
-    return ImageFile(image_buffer)
+from . import FileTestCase, generate_image
 
 
 class ImageTestCase(FileTestCase):

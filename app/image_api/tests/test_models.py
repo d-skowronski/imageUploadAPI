@@ -3,6 +3,7 @@ from io import BytesIO
 from os.path import basename
 from unittest.mock import patch
 from PIL import Image as PIL_Image
+from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -10,7 +11,7 @@ from django.core.files.images import ImageFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
-from ..models import Image, ResizedImage
+from ..models import Image, ResizedImage, ExpiringLink
 from . import FileTestCase
 
 
@@ -149,4 +150,54 @@ class ResizedImageTestCase(FileTestCase):
 
 
 class ExpiringLinkTestCase(FileTestCase):
-    pass
+    def setUp(self) -> None:
+        self.user = get_user_model().objects.create_user(
+            username='testuser',
+            password='testpassword'
+        )
+
+        self.original_image = Image.objects.create(
+            file=ImageFile(
+                file=generate_image(),
+                name="test_image.png"
+            ),
+            uploader=self.user
+        )
+
+    def test_creation(self):
+        link = ExpiringLink(image=self.original_image, expire_in_seconds=5)
+
+        self.assertEqual(link.image, self.original_image)
+        self.assertEqual(link.expire_in_seconds, 5)
+        self.assertFalse(link.is_expired)
+        self.assertFalse(link.slug)
+        self.assertIsNone(link.expiration)
+
+    @patch('image_api.models.generate_slug_from_title', lambda x: 'mock_slug')
+    def test_save(self):
+        link = ExpiringLink.objects.create(
+            image=self.original_image,
+            expire_in_seconds=5
+        )
+
+        self.assertEqual(link.slug, 'mock_slug')
+        self.assertAlmostEqual(
+            link.expiration,
+            timezone.now() + timezone.timedelta(seconds=link.expire_in_seconds),
+            delta=timedelta(milliseconds=500)
+        )
+        self.assertFalse(link.is_expired)
+
+    @patch('image_api.models.timezone.now')
+    def test_is_expired(self, time_now_mock):
+        # Make aware not necessary, it just prevents warning from django
+        time_now_mock.return_value = timezone.make_aware(datetime(2023, 9, 22))
+        link = ExpiringLink.objects.create(
+            image=self.original_image,
+            expire_in_seconds=5
+        )
+
+        # Move time in future...
+        time_now_mock.return_value = timezone.make_aware(datetime(2023, 9, 22, second=link.expire_in_seconds+1))
+
+        self.assertTrue(link.is_expired)

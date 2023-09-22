@@ -25,7 +25,7 @@ services:
       python manage.py makemigrations &&
       python manage.py migrate &&
       python manage.py shell < create_initial_superuser.py &&
-      python manage.py runserver 0.0.0.0:8000'
+      crond -l 8 -L /proc/1/fd/1 && python manage.py runserver 0.0.0.0:8000'
 
   database:
     image: postgres:13-alpine

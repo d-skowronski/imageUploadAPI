@@ -1,5 +1,5 @@
-from collections.abc import Iterable
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from .utils import generate_slug_from_title
 from django.core.files.base import ContentFile
@@ -80,10 +80,20 @@ class ResizedImage(models.Model):
 
 
 class ExpiringLink(models.Model):
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, blank=True)
     image = models.ForeignKey(Image, on_delete=models.CASCADE)
-    expiration = models.DateTimeField()
+    expire_in_seconds = models.PositiveIntegerField()
+    expiration = models.DateTimeField(blank=True, editable=False)
 
     def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = generate_slug_from_title(self.image.title)
+        self.expiration = timezone.now() + timezone.timedelta(seconds=self.expire_in_seconds)
         self.full_clean()
         super().save(*args, **kwargs)
+
+    @property
+    def is_expired(self):
+        if not self.expiration:
+            return False
+        return timezone.now() > self.expiration

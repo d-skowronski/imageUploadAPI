@@ -1,4 +1,3 @@
-from shutil import rmtree
 from datetime import timedelta
 from io import BytesIO
 from os.path import basename
@@ -9,11 +8,10 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.files.images import ImageFile
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from ..models import Image, ResizedImage
-from . import TEST_DIR
+from . import FileTestCase
 
 
 def generate_image(size=500, color=(256, 0, 0), format='png'):
@@ -26,18 +24,12 @@ def generate_image(size=500, color=(256, 0, 0), format='png'):
     return ImageFile(image_buffer)
 
 
-@override_settings(MEDIA_ROOT=(TEST_DIR + '/user_content'))
-class ImageTestCase(TestCase):
+class ImageTestCase(FileTestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             username='testuser',
             password='testpassword'
         )
-
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(TEST_DIR, ignore_errors=True)
-        super().tearDownClass()
 
     def test_creation(self):
         time = timezone.now()
@@ -65,8 +57,7 @@ class ImageTestCase(TestCase):
         self.assertEqual(Image.file.field.upload_to, 'original')
 
 
-@override_settings(MEDIA_ROOT=(TEST_DIR + '/user_content'))
-class ResizedImageTestCase(TestCase):
+class ResizedImageTestCase(FileTestCase):
     def setUp(self) -> None:
         self.user = get_user_model().objects.create_user(
             username='testuser',
@@ -80,11 +71,6 @@ class ResizedImageTestCase(TestCase):
             ),
             uploader=self.user
         )
-
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(TEST_DIR, ignore_errors=True)
-        super().tearDownClass()
 
     def test_creation(self):
         resize = ResizedImage.objects.create(
@@ -160,3 +146,7 @@ class ResizedImageTestCase(TestCase):
 
         self.assertEqual(resize.file.height, resize.height)
         self.assertEqual(resize.file.name, mock_file_name)
+
+
+class ExpiringLinkTestCase(FileTestCase):
+    pass

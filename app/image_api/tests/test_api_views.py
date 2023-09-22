@@ -1,19 +1,15 @@
-from shutil import rmtree
-
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from ..models import Image
-from . import TEST_DIR
+from . import FileTestCase
 
 User = get_user_model()
 
 
-@override_settings(MEDIA_ROOT=(TEST_DIR + '/user_content'))
-class ImageAPITestCase(TestCase):
+class ImageAPITestCase(FileTestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.image1 = Image.objects.create(
@@ -27,11 +23,6 @@ class ImageAPITestCase(TestCase):
 
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
-
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(TEST_DIR, ignore_errors=True)
-        super().tearDownClass()
 
     def test_image_list_upload(self):
         '''Test ImageListUpload view (GET request)'''

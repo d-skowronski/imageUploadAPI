@@ -1,20 +1,16 @@
-from shutil import rmtree
-
 from core.models import Tier
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
 from rest_framework.test import APIRequestFactory
 
 from ..models import Image
 from ..serializers import UploadedImageSerializer
-from . import TEST_DIR
+from . import FileTestCase
 
 User = get_user_model()
 
 
-@override_settings(MEDIA_ROOT=(TEST_DIR + '/user_content'))
-class UploadedImageSerializerTestCase(TestCase):
+class UploadedImageSerializerTestCase(FileTestCase):
     def setUp(self):
         self.tiers = {
             'basic': Tier.objects.get(original_link_access=False, expiring_link_generation_access=False),
@@ -29,11 +25,6 @@ class UploadedImageSerializerTestCase(TestCase):
         )
         self.request = APIRequestFactory().request()
         self.request.user = self.user
-
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(TEST_DIR, ignore_errors=True)
-        super().tearDownClass()
 
     def test_serialization(self):
         serializer = UploadedImageSerializer(instance=self.image, context={'request': self.request})

@@ -1,12 +1,11 @@
+from core.models import Tier
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
-from rest_framework.test import APIClient, APIRequestFactory
+from rest_framework.test import APIClient
 
-from core.models import Tier
-from ..models import Image, ExpiringLink
+from ..models import ExpiringLink, Image
 from . import FileTestCase
-from ..api_views import ExpiringLinkCreateList
 
 User = get_user_model()
 

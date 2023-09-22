@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'image_api',
+    'image_access',
 ]
 
 MIDDLEWARE = [
@@ -133,3 +134,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'user_content')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png']
+
+# Represented in seconds - determine time range for generating expiring links
+MIN_EXPIRING_TIME = 300
+MAX_EXPIRING_TIME = 30000

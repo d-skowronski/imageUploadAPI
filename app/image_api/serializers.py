@@ -14,10 +14,8 @@ class ExpiringLinkSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('link', 'expiration', 'valid_for')
 
     def get_link(self, obj):
-        # request = self.context['request']
-        return 'TODO'
-        # Once 'expiring_link' is added:
-        # return reverse('expiring_link', args=[obj.pk], request=request)
+        request = self.context['request']
+        return reverse('expiring_link', args=[obj.pk], request=request)
 
     def create(self, validated_data):
         validated_data['image'] = Image.objects.get(pk=self.context['image_pk'])

@@ -2,7 +2,7 @@ from shutil import rmtree
 from datetime import timedelta
 from io import BytesIO
 from os.path import basename
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from PIL import Image as PIL_Image
 
 from django.contrib.auth import get_user_model
@@ -50,7 +50,7 @@ class ImageTestCase(TestCase):
         self.assertIsNotNone(image.file)
         self.assertEqual(image.uploader, self.user)
 
-    @patch('image_api.models.generate_slug_from_title', MagicMock(return_value='mock_slug'))
+    @patch('image_api.models.generate_slug_from_title', lambda x: 'mock_slug')
     def test_save(self):
         image = Image.objects.create(
             file=SimpleUploadedFile("test_image.jpg", b"file_content"),
@@ -115,7 +115,7 @@ class ResizedImageTestCase(TestCase):
         self.assertEqual(resize.file.name, resize.slug + '.jpg')
 
     @patch('image_api.models.ResizedImage._generate_mock_file')
-    @patch('image_api.models.generate_slug_from_title', MagicMock(return_value='mock_slug'))
+    @patch('image_api.models.generate_slug_from_title', lambda x: 'mock_slug')
     def test_save(self, patch_generate_mock_file):
         resize = ResizedImage.objects.create(
             original=self.original_image,

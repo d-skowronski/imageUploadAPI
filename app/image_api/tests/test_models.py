@@ -165,25 +165,22 @@ class ExpiringLinkTestCase(FileTestCase):
         )
 
     def test_creation(self):
-        link = ExpiringLink(image=self.original_image, expire_in_seconds=5)
+        link = ExpiringLink(image=self.original_image, valid_for=5)
 
         self.assertEqual(link.image, self.original_image)
-        self.assertEqual(link.expire_in_seconds, 5)
+        self.assertEqual(link.valid_for, 5)
         self.assertFalse(link.is_expired)
-        self.assertFalse(link.slug)
         self.assertIsNone(link.expiration)
 
-    @patch('image_api.models.generate_slug_from_title', lambda x: 'mock_slug')
     def test_save(self):
         link = ExpiringLink.objects.create(
             image=self.original_image,
-            expire_in_seconds=5
+            valid_for=5
         )
 
-        self.assertEqual(link.slug, 'mock_slug')
         self.assertAlmostEqual(
             link.expiration,
-            timezone.now() + timezone.timedelta(seconds=link.expire_in_seconds),
+            timezone.now() + timezone.timedelta(seconds=link.valid_for),
             delta=timedelta(milliseconds=500)
         )
         self.assertFalse(link.is_expired)
@@ -194,10 +191,10 @@ class ExpiringLinkTestCase(FileTestCase):
         time_now_mock.return_value = timezone.make_aware(datetime(2023, 9, 22))
         link = ExpiringLink.objects.create(
             image=self.original_image,
-            expire_in_seconds=5
+            valid_for=5
         )
 
         # Move time in future...
-        time_now_mock.return_value = timezone.make_aware(datetime(2023, 9, 22, second=link.expire_in_seconds+1))
+        time_now_mock.return_value = timezone.make_aware(datetime(2023, 9, 22, second=link.valid_for+1))
 
         self.assertTrue(link.is_expired)

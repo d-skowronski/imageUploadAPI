@@ -7,6 +7,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image as ImageManager
 from io import BytesIO
 import os
+import uuid
 import mimetypes
 
 
@@ -80,15 +81,13 @@ class ResizedImage(models.Model):
 
 
 class ExpiringLink(models.Model):
-    slug = models.SlugField(unique=True, blank=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     image = models.ForeignKey(Image, on_delete=models.CASCADE)
-    expire_in_seconds = models.PositiveIntegerField()
+    valid_for = models.PositiveIntegerField(help_text='Valid for (seconds)')
     expiration = models.DateTimeField(blank=True, editable=False)
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = generate_slug_from_title(self.image.title)
-        self.expiration = timezone.now() + timezone.timedelta(seconds=self.expire_in_seconds)
+        self.expiration = timezone.now() + timezone.timedelta(seconds=self.valid_for)
         self.full_clean()
         super().save(*args, **kwargs)
 

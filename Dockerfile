@@ -15,3 +15,5 @@ RUN apk add --update --no-cache gcc musl-dev jpeg-dev zlib-dev libjpeg libffi-de
     /py/bin/pip install --upgrade pip setuptools wheel && \
     /py/bin/pip install --use-pep517 -r /tmp/requirements.txt && \
     rm -rf /tmp
+
+RUN echo "0     *       *       *       *       /py/bin/python /app/manage.py remove_expired_links > /proc/1/fd/1" >> /var/spool/cron/crontabs/root
